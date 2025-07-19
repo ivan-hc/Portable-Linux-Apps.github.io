@@ -94,7 +94,7 @@ function _categories_buttons() {
 	echo "#### *Categories*"
 	echo ""
 	#- ***[SAMPLE](https://portable-linux-apps.github.io/SAMPLE.html)*** \
-	echo "***[AppImages](appimages.md)*** \
+	echo "***[AppImages](appimages.md)*** - ***[Portable](portable.md)*** \
 		$(for c in $CATEGORIES; do printf " - ***[$c]($c.md)***"; done)"
 	echo ""
 }
@@ -227,6 +227,48 @@ _appimages_listing
 _appimages_list_header
 _appimages_list_body
 _footer_categories >> appimages.md
+
+#######################
+# COMPILE PORTABLE PAGE
+#######################
+
+function _portable_listing() {
+	if [ -f "$HOME"/.local/share/AM/"$arch"-portable ]; then
+		PORTABLE_LIST_AM=$(cat "$HOME"/.local/share/AM/"$arch"-portable | awk -v FS="(◆ | : )" '{print $2}')
+	elif [ -f ./"$arch"-portable ]; then
+		PORTABLE_LIST_AM=$(cat ./"$arch"-portable | awk -v FS="(◆ | : )" '{print $2}')
+	else
+		PORTABLE_LIST_AM=$(curl -Ls https://raw.githubusercontent.com/ivan-hc/AM/main/programs/x86_64-portable)
+	fi
+	[ -z "$PORTABLE_LIST_AM" ] && exit 1
+	echo "$PORTABLE_LIST_AM" | awk -v FS="(◆ | : )" '{print $2}' > args
+	ARGS=$(cat ./args)
+	PORTABLE_NUMBER=$(cat ./args | wc -l)
+}
+
+function _portable_list_header {
+	echo "# PORTABLE" > portable.md
+	_home_button >> portable.md
+	echo "#### Here are listed the **$PORTABLE_NUMBER** portable apps (not Appimages) managed by [AM](https://github.com/ivan-hc/AM) \
+	and [AppMan](https://github.com/ivan-hc/AppMan) for the x86_64 architecture." >> portable.md
+	echo "" >> portable.md
+	echo "*Use your browser's built-in search tool to easily navigate to this page or use the tags below.*" >> portable.md
+	echo "" >> portable.md
+	_back_to_apps_button >> portable.md
+	_categories_buttons >> portable.md
+	_table_head >> portable.md
+}
+
+function _portable_list_body() {
+	for arg in $ARGS; do
+		grep "apps/$arg.md" ./body.txt >> portable.md
+	done
+}
+
+_portable_listing
+_portable_list_header
+_portable_list_body
+_footer_categories >> portable.md
 
 ######################################
 # COMPILE THE MAIN PAGE OF THE WEBSITE
